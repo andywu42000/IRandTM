@@ -33,6 +33,6 @@ with open('news.txt') as file:
             result_list.append(s)
     
     # Write result to file
-    file = open('output.txt','w')
+    file = open('result.txt','w')
     for result in result_list:
         file.write(result + '\n')
