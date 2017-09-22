@@ -1,6 +1,5 @@
 yugoslav
 author
-ar
 plan
 arrest
 coal
@@ -15,7 +14,6 @@ action
 presid
 slobodan
 milosev
-ar
 listen
 bbc
 new
