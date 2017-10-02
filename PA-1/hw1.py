@@ -52,7 +52,7 @@ content = file.read()
 file.close()
 
 # process document
-stemmed_terms = process_document(content)
+stemmed_terms = sorted(process_document(content))
 
 # write file
 output_file = open("result.txt", "w", encoding="utf-8")
