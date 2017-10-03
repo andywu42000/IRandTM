@@ -1,5 +1,5 @@
 import re
-from porter import PorterStemmer
+from nltk.stem.porter import PorterStemmer
 
 p = PorterStemmer()
 
@@ -30,7 +30,7 @@ with open('news.txt') as file:
     # Stemming by using Porter's algorithm
     result_list = []
     for s in after_removed_list:
-        result_list.append(p.stem(s, 0, len(s)-1))
+        result_list.append(p.stem(s))
 
     # Write result to file
     file = open('result.txt','w')

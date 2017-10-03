@@ -16,5 +16,5 @@ slobodan
 milosev
 listen
 bbc
-new
+news
 world
