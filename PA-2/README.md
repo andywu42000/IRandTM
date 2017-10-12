@@ -11,8 +11,8 @@
 ### 格式
 - dictionary.txt
 ```
-t_index	  term	      df
-1        Apple    	   3
+t_index	  term	     df
+1        Apple        3
 2      Basketball    12
 ```
 - 繳交格式 pdf 檔
