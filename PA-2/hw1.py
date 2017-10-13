@@ -17,7 +17,7 @@ def preprocessing(filename):
 
 def read_file(filename):
 	"""Read the file of dictionary and return a string"""
-	now_path = os.path.dirname(__file__)+'/'
+	now_path = os.path.dirname(os.path.abspath(__file__))+'/'
 	f_value = open(now_path + filename, 'r', encoding='UTF-8')
 	content = f_value.read()
 	f_value.close()
@@ -63,7 +63,8 @@ def remove_stop_word(token_list):
 
 def write_file(filename, token_list):
 	"""write files"""
-	now_path = os.path.dirname(__file__)+'/'
+	now_path = os.path.dirname(os.path.abspath(__file__))+'/'
+	print(now_path)
 	f_value = open(now_path + filename, 'w', encoding='UTF-8')
 	for token in token_list:
 		f_value.write("%s\n" % token)

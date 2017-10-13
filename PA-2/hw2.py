@@ -4,12 +4,14 @@
 import os
 import operator
 import math
+import time
 
 import hw1
 
 def construct_dictionary(documents_dir):
 	"""construct dictionary"""
-	documents = os.listdir(documents_dir)
+	now_path = os.path.dirname(os.path.abspath(__file__))+'/'
+	documents = os.listdir(now_path + documents_dir)
 	dictionary = {}
 	for document in documents:
 		token_list = hw1.preprocessing(documents_dir+document)
@@ -23,11 +25,11 @@ def construct_dictionary(documents_dir):
 				dictionary[token] = 1
 			pre_token = token
 	dictionary = sorted(dictionary.items(), key=operator.itemgetter(0))
-	write_dictionary(dictionary, 'dictionary.txt')
+	write_dictionary(dictionary, './dictionary.txt')
 
 def write_dictionary(dictionary, filename):
 	"""write dictionary"""
-	now_path = os.path.dirname(__file__)+'/'
+	now_path = os.path.dirname(os.path.abspath(__file__))+'/'
 	f_value = open(now_path + filename, 'w', encoding='UTF-8')
 	f_value.write("t_index\tterm\tdf\n")
 	for i in range(0, len(dictionary)):
@@ -62,7 +64,8 @@ def dictionary_df(dictionary_list):
 
 def transfer_tfidf_unit_vector(documents_dir, dictionary_of_index, dictionary_of_df):
 	"""transfer tf-idf unit vector"""
-	documents = os.listdir(documents_dir)
+	now_path = os.path.dirname(os.path.abspath(__file__))+'/'
+	documents = os.listdir(now_path + documents_dir)
 	for document in documents:
 		dictionary = {}
 		token_list = hw1.preprocessing(documents_dir+document)
@@ -72,9 +75,11 @@ def transfer_tfidf_unit_vector(documents_dir, dictionary_of_index, dictionary_of
 			else:
 				dictionary[token] = 1
 		dictionary = sorted(dictionary.items(), key=operator.itemgetter(0))
-		#write to result/filename
-		now_path = os.path.dirname(__file__)+'/'
-		f_value = open(now_path + 'result/' + document, 'w', encoding='UTF-8')
+		#write to unit_vector/filename
+		now_path = os.path.dirname(os.path.abspath(__file__))+'/'
+		if not os.path.isdir(now_path+'unit_vector'):
+			os.mkdir(now_path+'unit_vector')
+		f_value = open(now_path + 'unit_vector/' + document, 'w', encoding='UTF-8')
 		f_value.write(str(len(dictionary))+'\n')
 		f_value.write('t_index\ttf-idf')
 		tfidf_squares = 0.0
@@ -124,13 +129,15 @@ def cosine(doc_x, doc_y):
 
 def main():
 	"""main function"""
-	construct_dictionary('./IRTM/')
-	dictionary_list = read_dictionary('./dictionary.txt')
+	print(time.strftime("%Y/%m/%d %H:%M:%S"), ' ---Start!')
+	construct_dictionary('IRTM/')
+	dictionary_list = read_dictionary('dictionary.txt')
 	dictionary_of_index = dictionary_index(dictionary_list)
 	dictionary_of_df = dictionary_df(dictionary_list)
-	transfer_tfidf_unit_vector('./IRTM/', dictionary_of_index, dictionary_of_df)
-	# cosine_similarity = cosine('result/1005.txt', 'result/1003.txt')
-	# print(cosine_similarity)
+	transfer_tfidf_unit_vector('IRTM/', dictionary_of_index, dictionary_of_df)
+	cosine_similarity = cosine('unit_vector/1.txt', 'unit_vector/2.txt')
+	print(cosine_similarity)
+	print(time.strftime("%Y/%m/%d %H:%M:%S"), ' ---Done!')
 
 if __name__ == "__main__":
 	main()
