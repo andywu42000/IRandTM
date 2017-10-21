@@ -7,16 +7,18 @@ p = PorterStemmer()
 # Read stop words from stop-words.txt
 stop_words_list = set(stopwords.words('english'))
 
-regex = re.compile("[^a-zA-Z_\-0-9]")
-re_alphabet = re.compile("[a-zA-Z]")
+regex = re.compile("[^A-Za-z0-9]")
+has_alphabet = re.compile("[a-zA-Z]")
+
 def term_generate(raw_data):
 
     # Tokenization and Lowercase
     token_list = []
-    split_data = raw_data.lower().split()
+    raw_data = raw_data.lower()
+    split_data = regex.split(raw_data)
     for s in split_data:
         raw_token = regex.sub('', s)
-        if re_alphabet.search(raw_token) != None:
+        if has_alphabet.search(raw_token) != None:   # If contains any alphabet
             token_list.append(raw_token)
 
     # Remove stop words
@@ -26,15 +28,15 @@ def term_generate(raw_data):
             after_removed_list.append(s)
 
     # Stemming by using Porter's algorithm
-    result_list = []
+    term_list = []
     for s in after_removed_list:
-        result_list.append(p.stem(s))
+        term_list.append(p.stem(s))
 
-    return result_list
+    return term_list
 
 
 if __name__ == '__main__':
-    with open('news.txt') as file:
+    with open(sys.argv[1]) as file:
 
         # Read the raw text and print it
         raw_data = file.read().decode("utf-8")
