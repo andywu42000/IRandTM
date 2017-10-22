@@ -62,34 +62,35 @@ def generate_dictionary(term_list, doc_list):
 def get_tf_related_values_and_write_file(dictionary,
                                          terms_for_doc,
                                          idf_list,
-                                         doc_index=0):
-    # get tf values
-    term_index_list = terms_for_doc[doc_index]
-    tf_list = [
-        dictionary[term_index]["tf"][str(doc_index)]
-        for term_index in term_index_list
-    ]
+                                         doc_index_list):
+    for doc_index in doc_index_list:
+        # get tf values
+        term_index_list = terms_for_doc[doc_index]
+        tf_list = [
+            dictionary[term_index]["tf"][str(doc_index)]
+            for term_index in term_index_list
+        ]
 
-    # process tf-idf values
-    tf_idf_list = []
-    for term_index, tf in enumerate(tf_list):
-        tf_idf = float(tf * idf_list[term_index_list[term_index]])
-        tf_idf_list.append(tf_idf)
+        # process tf-idf values
+        tf_idf_list = []
+        for term_index, tf in enumerate(tf_list):
+            tf_idf = float(tf * idf_list[term_index_list[term_index]])
+            tf_idf_list.append(tf_idf)
 
-    # process normalized tf-idf value and write file
-    output_filepath = "Doc{id}.txt".format(id=(doc_index + 1))
-    doc_file = open(RESULT_DIRECTORY + output_filepath, "w", encoding="utf-8")
-    doc_file.write("{term_count}\n".format(
-        term_count=str(len(term_index_list))))
+        # process normalized tf-idf value and write file
+        output_filepath = "Doc{id}.txt".format(id=(doc_index + 1))
+        doc_file = open(RESULT_DIRECTORY + output_filepath, "w", encoding="utf-8")
+        doc_file.write("{term_count}\n".format(
+            term_count=str(len(term_index_list))))
 
-    vector_length = math.sqrt(sum([value**2 for value in tf_idf_list]))
-    for index, tf_idf in enumerate(tf_idf_list):
-        doc_file.write(
-            '{id:<10}{ntf_idf:<30}\n'.format(
-                id=str(term_index_list[index]),
-                ntf_idf=str(tf_idf / vector_length))
-        )
-    doc_file.close()
+        vector_length = math.sqrt(sum([value**2 for value in tf_idf_list]))
+        for index, tf_idf in enumerate(tf_idf_list):
+            doc_file.write(
+                '{id:<10}{ntf_idf:<30}\n'.format(
+                    id=str(term_index_list[index]),
+                    ntf_idf=str(tf_idf / vector_length))
+            )
+        doc_file.close()
 
 
 # Generate term list
@@ -125,4 +126,4 @@ if not os.path.exists('result'):
 
 # Get n_tf_idf_value and write file
 get_tf_related_values_and_write_file(
-    dictionary, terms_for_doc, idf_list)
+    dictionary, terms_for_doc, idf_list, doc_index_list=[0])
