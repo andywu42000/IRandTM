@@ -17,8 +17,8 @@ def clear_content(content_list):
     """
     cleared_content_list = []
     for content in content_list:
-        content = re.sub("http.*? ", "", content)
-        content = re.sub("www.*? ", "", content)
+        content = re.sub(r'http\S+', "", content)
+        content = re.sub(r'www\S+', "", content)
         content = re.sub("[" + string.punctuation + "]", "", content)
         content = re.sub("[^a-zA-Z]+", " ", content)
         cleared_content_list.append(content.lower())
