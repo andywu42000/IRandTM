@@ -119,6 +119,10 @@ dict_file.close()
 # Get idf list
 idf_list = [math.log10(doc_count / term["df"]) for term in dictionary]
 
+# Check if the folder for storing results exists
+if not os.path.exists('result'):
+    os.makedirs('result')
+
 # Get n_tf_idf_value and write file
 get_tf_related_values_and_write_file(
     dictionary, terms_for_doc, idf_list)
