@@ -1,3 +1,5 @@
+"""Calculate cosine value of two docs."""
+
 # !/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 import numpy as np
