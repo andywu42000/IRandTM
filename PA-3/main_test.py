@@ -1,19 +1,66 @@
 import math
 import operator
 import sys
+from random import shuffle
 from terms import term_generate
 
 def main():
+    '''
     label = get_label()
-    vocabulary, all_term_list = get_vocabulary( label )
-    print "Now training..."
+    vocabulary, all_term_list = get_vocabulary(label)
+    print "Now Training..."
     prior, condprob = train_multinomial_nb( vocabulary , all_term_list , label )
-    print "Now testing..."
+    print "Now Testing..."
     argmax_score = test_multinomial_nb( vocabulary , all_term_list , label , prior , condprob )
-    output_classification( argmax_score , all_term_list )
+    output_classification(argmax_score)
     print "Result written to output.txt!"
+    '''
 
-def output_classification(argmax_score, all_term_list):
+    origin_label, shuffled_docs = valid_get_label()
+    while len(shuffled_docs) != 0:
+        test_data = {}
+        label = origin_label.copy()
+        for i in range(0,20):
+            if len(shuffled_docs) != 0:
+                this_doc = shuffled_docs.pop()
+                test_data[this_doc] = label.pop(this_doc)
+            else:
+                break
+        vocabulary, all_term_list = get_vocabulary(label)
+    #print "Now Training..."
+        prior, condprob = train_multinomial_nb( vocabulary , all_term_list , label )
+    #print "Now Testing..."
+        argmax_score = test_multinomial_nb( vocabulary , all_term_list , label , prior , condprob )
+        valid_classification(argmax_score, test_data)
+    #output_classification(argmax_score)
+    #print "Result written to output.txt!"
+
+def valid_get_label():
+    class_data = {}
+    test_data = {}
+    with open( 'training.txt' , 'r' ) as class_file :
+        for line in class_file :
+            this_class = line.split()
+            for doc in this_class[1:] :
+                class_data[ int(doc) ] = int(this_class[0])
+    shuffled_docs = class_data.keys()
+    shuffle(shuffled_docs)
+
+    return class_data, shuffled_docs
+
+def valid_classification(argmax_score, test_data):
+    accuracy = 0
+    counter = 0
+    for docID, score_list in argmax_score.items():
+        categoryID = score_list.index(max(score_list)) + 1
+        if docID in test_data.keys():
+            counter += 1
+            if categoryID == test_data[docID]:
+                accuracy += 1
+            print docID, categoryID, test_data[docID]
+    print float(accuracy) / counter * 100
+
+def output_classification(argmax_score):
     class_result = [0]*13
     output = open('output.txt', 'w')
     for docID, score_list in argmax_score.items():
@@ -28,7 +75,6 @@ def output_classification(argmax_score, all_term_list):
     for class_no in class_result:
         sys.stdout.write("{:4} ".format(class_no))
     sys.stdout.write("\n")
-
 
 def test_multinomial_nb(vocabulary, all_term_list, label, prior, condprob):
     argmax_score = {}
@@ -88,9 +134,9 @@ def get_vocabulary(label):
                     vocabulary.add(term)
     sys.stdout.write('\n')
 
-    print "Now feature selecting..."
+    print "Now fearture selecting..."
     vocabulary = LLR(vocabulary, all_term_list, label, 500)
-
+    #vocabulary = list(vocabulary)
     print "Now documents terms updating..."
     new_all_term_list = {}
     for docID, term_list in all_term_list.items():
@@ -98,6 +144,9 @@ def get_vocabulary(label):
         for term in term_list:
             if term in vocabulary:
                 new_all_term_list[docID].append(term)
+
+    for i in range(0,len(vocabulary)):
+        print i+1, vocabulary[i]
 
     return vocabulary, new_all_term_list
 
@@ -112,31 +161,46 @@ def get_label():
 
 def LLR(vocabulary, all_term_list, docID_class, k):
     full_vocabulary_ratios = {}
+    chi_vocabulary_ratios = {}
+    tokens_count = 0
+
+    for docID in all_term_list:
+        tokens_count += len(all_term_list[docID])
 
     for term in vocabulary:
         prob_matrix = {}
         for docID, this_class in docID_class.items():
             prob_matrix.setdefault(this_class, [0,0])
-            if term in all_term_list[docID]:
-                prob_matrix[this_class][0] += 1
-            else:
-                prob_matrix[this_class][1] += 1
+            for this_term in all_term_list[docID]:
+                if this_term == term:
+                    prob_matrix[this_class][0] += 1
+                else:
+                    prob_matrix[this_class][1] += 1
 
         h1, h2 = .0, .0
 
         # Calculate H1
         term_present_count = sum([prob_matrix[i][0] for i in prob_matrix]) + 1
-        term_absent_count = len(docID_class) - term_present_count + 1
-        pt = float(term_present_count) / (len(docID_class) + 2)
+        term_absent_count = tokens_count - term_present_count + 1
+        pt = float(term_present_count) / (tokens_count + 2)
         not_pt = 1 - pt
         h1 += math.log(pt) * term_present_count + math.log(not_pt) * term_absent_count
 
-        # Calculate H2
+        this_chi_value = 0.0
+        # Calculate H2 and chi-square
         for this_class, row in prob_matrix.items():
-            this_present_prob = float(row[0]) / (row[0] + row[1])
-            h2 += math.log(math.pow(this_present_prob,row[0]) * math.pow(1-this_present_prob, row[1]))
+            Ep = float(term_present_count * (row[0] + row[1])) / tokens_count
+            Enp = float(term_absent_count * (row[0] + row[1])) / tokens_count
+            this_chi_value += (row[0] - Ep)**2 / Ep
+            this_chi_value += (row[1] - Enp)**2 / Enp
+
+            this_present_prob = float(row[0]+1) / (row[0] + row[1]+1)
+            h2 += math.log(this_present_prob) * row[0] + math.log(1-this_present_prob) * row[1]
+            #temp = math.pow(this_present_prob,row[0]) * math.pow(1-this_present_prob, row[1])
+            #h2 += math.log(temp)
 
         full_vocabulary_ratios[term] = -2 * (h1 - h2)
+        chi_vocabulary_ratios[term] = this_chi_value
 
     sorted_vocabulary = sorted(full_vocabulary_ratios.items(), key=operator.itemgetter(1), reverse=True)
     return [pair[0] for pair in sorted_vocabulary[:k]]
