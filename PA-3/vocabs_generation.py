@@ -4,72 +4,11 @@ from nltk import PorterStemmer
 import numpy as np
 import operator
 import math
-import re
-import string
+from utils import (get_file_indices, process_content,
+                   get_contents, get_stopword_list, remove_stopwords)
 
 
-DOCUMENT_DIR = "documents/"
-DATA_DIR = "data/"
 CLASSES = 13
-
-
-def get_file_indices(training_file):
-    file_indices = []
-    with open(DATA_DIR + training_file, 'r') as f:
-        for line in f:
-            line = line.replace(' \n', '').split(' ')
-            file_indices.append(line[1:16])
-
-    return file_indices
-
-
-def clear_content(content):
-    content = re.sub(r'http\S+', ' ', content)
-    content = re.sub(r'www\S+', ' ', content)
-    content = re.sub("[" + string.punctuation + "]", ' ', content)
-    content = re.sub("[^a-zA-Z]+", ' ', content)
-
-    return content.lower()
-
-
-def process_content(stopword_list, contents):
-    updated_contents = []
-    for content in contents:
-        tokens = content.split(' ')
-        updated_tokens = remove_stopwords(stopword_list, tokens)
-        stemmed_tokens = [PorterStemmer().stem(token) for token in updated_tokens]
-        updated_content = remove_stopwords(stopword_list, stemmed_tokens)
-        updated_contents.append((' ').join(updated_content))
-
-    return updated_contents
-
-
-def get_contents(file_indices):
-    contents = []
-    for file_index in file_indices:
-        file = open(DOCUMENT_DIR + file_index + '.txt', 'r', encoding='utf-8')
-        content = file.read()
-        file.close()
-        contents .append(clear_content(content))
-
-    return contents
-
-
-def get_stopword_list(stopwords_file):
-    stopword_list = []
-    with open(DATA_DIR + stopwords_file, 'r') as f:
-        stopword_list = [line.rstrip() for line in f]
-
-    return stopword_list
-
-
-def remove_stopwords(stopword_list, words):
-    updated_words = []
-    for word in words:
-        if word not in stopword_list:
-            updated_words.append(word)
-
-    return updated_words
 
 
 def generate_terms(content_list, stopword_list):
@@ -136,16 +75,14 @@ def feature_selection(contents_list, terms_list):
             pro_list[1] = 15 - pro_list[0]
             pro_list[3] = 180 - pro_list[2]
             pro_list = np.float32(pro_list)
-            # print(pro_list)
 
             # calculate LLR
             pt = (pro_list[0] + pro_list[2]) / pro_list.sum()
             p1 = pro_list[0] / (pro_list[0] + pro_list[1])
             p2 = pro_list[2] / (pro_list[2] + pro_list[3])
-            # print(pt, p1, p2)
 
             LLR_value = get_llr_value(pro_list, pt, p1, p2)
-            LLR_list.append((term, LLR_value))
+            LLR_list.append([term, LLR_value])
 
         LLR_list.sort(key=operator.itemgetter(1), reverse=True)
         total_LLR_list.append(LLR_list[:40])
