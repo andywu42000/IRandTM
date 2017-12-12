@@ -11,24 +11,16 @@ def main():
     print "Now testing..."
     argmax_score = test_multinomial_nb( vocabulary , all_term_list , label , prior , condprob )
     output_classification( argmax_score , all_term_list )
-    print "Result written to output.txt!"
+    print "Result written to r06725052.txt!"
 
 def output_classification(argmax_score, all_term_list):
     class_result = [0]*13
-    output = open('output.txt', 'w')
+    output = open('r06725052.txt', 'w')
     for docID, score_list in argmax_score.items():
         categoryID = score_list.index(max(score_list)) + 1
         class_result[categoryID-1] += 1
         output.write(str(docID) + "\t" + str(categoryID) + "\n")
     output.close()
-
-    for i in range(1,14):
-        sys.stdout.write("{:4} ".format(i))
-    sys.stdout.write("\n")
-    for class_no in class_result:
-        sys.stdout.write("{:4} ".format(class_no))
-    sys.stdout.write("\n")
-
 
 def test_multinomial_nb(vocabulary, all_term_list, label, prior, condprob):
     argmax_score = {}
@@ -52,8 +44,8 @@ def train_multinomial_nb(vocabulary, all_term_list, docID_class):
     # Calculate prior_prob and collect class's terms
     for docID, this_class in docID_class.items():
         prior_prob.setdefault(this_class, 0)
-        prior_prob[this_class] += 1
         class_terms.setdefault(this_class, [])
+        prior_prob[this_class] += 1
         for term in all_term_list[docID]:
             class_terms[this_class].append(term)
     for this_class in prior_prob:
