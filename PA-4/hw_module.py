@@ -22,7 +22,7 @@ class Cluster:
     def mergeCluster(self, cluster):
         new_vector_sum = {}
         for term, sim in self.s.items():
-            new_vector_sum[term] = new_vector_sum.setdefault(term, 0.0) + sim
+            new_vector_sum[term] = sim
         for term, sim in cluster.s.items():
             new_vector_sum[term] = new_vector_sum.setdefault(term, 0.0) + sim
         self.s = new_vector_sum

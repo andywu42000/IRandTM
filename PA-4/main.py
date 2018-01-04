@@ -1,5 +1,6 @@
 from terms import term_generate
 import math
+import sys
 from hw_module import PriorityQueue, Cluster
 N = 1095
 
@@ -7,11 +8,13 @@ def main():
     vocabulary, doc_term_count, term_docID_dict = get_data()
     doc_tfidf = calculate_tfidf(doc_term_count, term_docID_dict)
     gaac(doc_tfidf, [20, 13, 8])
+    print "\n"
 
 def get_data():
     doc_term_count = []
     term_docID_dict = {}
     vocabulary = set()
+    print "Now reading data..."
     for i in range(1, N+1):
         term_count = {}
         with open("IRTM/" + str(i) + ".txt", "r") as input_file:
@@ -22,16 +25,13 @@ def get_data():
                 term_count[term] = term_count.setdefault(term, 0) + 1
                 vocabulary.add(term)
         doc_term_count.append(term_count)
-    '''
-    for term_count in doc_term_count:
-        for term in vocabulary:
-            term_count.setdefault(term, 0)
-    '''
+
     return vocabulary, doc_term_count, term_docID_dict
 
 def calculate_tfidf(doc_term_count, term_docID_dict):
     doc_tfidf = []
     idf_values = {}
+    print "Now calculating TF-IDF value..."
     for term, doc_list in term_docID_dict.items():
         idf_values[term] = math.log(float(N) / len(set(doc_list)), 10)
     for term_count in doc_term_count:
@@ -59,11 +59,15 @@ def gaac(doc_tfidf, K_list):
     C = {}
     for i, clusterX in enumerate(cluster_list[:-1]):
         C[i+1] = PriorityQueue()
+        sys.stdout.write('\r')
+        sys.stdout.write("Initializing similarity... {:.2f}%".format(float(i)/N*100))
+        sys.stdout.flush()
         j = i + 1
         for clusterY in cluster_list[i+1:]:
             C[i+1].add(j+1, sim_ga(clusterX, clusterY))
             j += 1
-
+    print "\n"
+    
     cluster_count = sum(1 if cluster != None else 0 for cluster in cluster_list)
     while (cluster_count is not 1 and len(K_list) is not 0):
         max_X_no, max_Y_no = get_max_sim_pair(C)
@@ -95,11 +99,14 @@ def gaac(doc_tfidf, K_list):
                 C[max_X_no].add(j, sim_ga(clusterX, clusterZ))
                 j += 1
         cluster_count = sum(1 if cluster != None else 0 for cluster in cluster_list)
+        sys.stdout.write('\r')
+        sys.stdout.write("Clustering... {:.2f}%".format(float(N-cluster_count)/N*100))
+        sys.stdout.flush()
 
         if cluster_count == K_list[0]:
             output_result(cluster_count, cluster_list)
             del K_list[0]
-        print cluster_count
+
 
 def output_result(K, cluster_list):
     output_file = open(str(K)+".txt", "w")
@@ -126,10 +133,10 @@ def get_max_sim_pair(C):
 
 def sim_ga(clusterX, clusterY):
     total_vector_sum = {}
-    for term, tfidf in clusterX.s.items():
-        total_vector_sum[term] = total_vector_sum.setdefault(term, 0.0) + tfidf
-    for term, tfidf in clusterY.s.items():
-        total_vector_sum[term] = total_vector_sum.setdefault(term, 0.0) + tfidf
+    for term in clusterX.s:
+        total_vector_sum[term] = clusterX.s[term]
+    for term in clusterY.s:
+        total_vector_sum[term] = total_vector_sum.setdefault(term, 0.0) + clusterY.s[term]
     similarity = sum([value**2 for value in total_vector_sum.values()])
     num = clusterX.n + clusterY.n
     similarity = float( similarity - num ) / ( num * (num-1) )
