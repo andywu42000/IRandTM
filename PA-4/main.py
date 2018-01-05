@@ -9,7 +9,7 @@ def main():
     vocabulary, doc_term_count, term_docID_dict = get_data()
     doc_tfidf = calculate_tfidf(doc_term_count, term_docID_dict)
     gaac(doc_tfidf, [20, 13, 8])
-    print "\n"
+    sys.stdout.write("\n")
 
 def get_data():
     doc_term_count = []
@@ -52,6 +52,7 @@ def calculate_tfidf(doc_term_count, term_docID_dict):
 
 def gaac(doc_tfidf, K_list):
     K_list = sorted(K_list, reverse=True)
+    target_cluster = N - K_list[-1]
 
     cluster_list = []
     for i in range(0, N):
@@ -61,13 +62,13 @@ def gaac(doc_tfidf, K_list):
     for i, clusterX in enumerate(cluster_list[:-1]):
         C[i+1] = PriorityQueue()
         sys.stdout.write('\r')
-        sys.stdout.write("Initializing similarity... {:.2f}%".format(float(i)/N*100))
+        sys.stdout.write("Initializing similarity... {:.2f}%".format(float(i+1)/(N-1)*100))
         sys.stdout.flush()
         j = i + 1
         for clusterY in cluster_list[i+1:]:
             C[i+1].add(j+1, sim_ga(clusterX, clusterY))
             j += 1
-    print "\n"
+    sys.stdout.write("\n")
 
     cluster_count = sum(1 if cluster != None else 0 for cluster in cluster_list)
     while (cluster_count != 1 and len(K_list) != 0):
@@ -103,7 +104,7 @@ def gaac(doc_tfidf, K_list):
                 j += 1
         cluster_count = sum(1 if cluster != None else 0 for cluster in cluster_list)
         sys.stdout.write('\r')
-        sys.stdout.write("Clustering... {:.2f}%".format(float(N-cluster_count)/N*100))
+        sys.stdout.write("Clustering... {:.2f}%".format(float(N-cluster_count)/target_cluster*100))
         sys.stdout.flush()
 
         if cluster_count == K_list[0]:
@@ -130,7 +131,6 @@ def get_max_sim_pair(C):
             max_sim = this_sim
             max_X_no = clusterNo
             max_Y_no = this_no
-    #print max_X_no, max_Y_no, max_sim
     return max_X_no, max_Y_no
 
 def sim_ga(clusterX, clusterY):
