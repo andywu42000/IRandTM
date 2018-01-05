@@ -21,11 +21,11 @@ class PriorityQueue:
             if right_child_index <= len(self.queue):    # has right child
                 right = self.queue[right_child_index-1][1]
                 max_value = max(current, left, right)
-                if max_value is left:
+                if max_value == left:
                     self.queue[current_index-1], self.queue[left_child_index-1] = self.queue[left_child_index-1], self.queue[current_index-1]
                     current_index = left_child_index
                     left_child_index, right_child_index = current_index*2, current_index*2+1
-                elif max_value is right:
+                elif max_value == right:
                     self.queue[current_index-1], self.queue[right_child_index-1] = self.queue[right_child_index-1], self.queue[current_index-1]
                     current_index = right_child_index
                     left_child_index, right_child_index = current_index*2, current_index*2+1
@@ -49,7 +49,7 @@ class PriorityQueue:
         index = 0
         for pair in self.queue:
             index += 1
-            if pair[0] is No:
+            if pair[0] == No:
                 break
         self.queue[index-1][1] = similarity
         self.heapify(index)
@@ -71,9 +71,8 @@ class PriorityQueue:
 
     def heapify(self, index):
         parent_index = index / 2
-        #print parent_index, index, len(self.queue)
         if parent_index > 0 and self.queue[parent_index-1][1] < self.queue[index-1][1]:
-                self.filter_up(index)
+            self.filter_up(index)
         else:
             self.filter_down(index)
 

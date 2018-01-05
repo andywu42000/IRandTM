@@ -1,6 +1,7 @@
 from terms import term_generate
 import math
 import sys
+import pdb
 from hw_module import PriorityQueue, Cluster
 N = 1095
 
@@ -59,17 +60,17 @@ def gaac(doc_tfidf, K_list):
     C = {}
     for i, clusterX in enumerate(cluster_list[:-1]):
         C[i+1] = PriorityQueue()
-        #sys.stdout.write('\r')
-        #sys.stdout.write("Initializing similarity... {:.2f}%".format(float(i)/N*100))
-        #sys.stdout.flush()
+        sys.stdout.write('\r')
+        sys.stdout.write("Initializing similarity... {:.2f}%".format(float(i)/N*100))
+        sys.stdout.flush()
         j = i + 1
-        for clusterY in cluster_list[j:]:
+        for clusterY in cluster_list[i+1:]:
             C[i+1].add(j+1, sim_ga(clusterX, clusterY))
             j += 1
     print "\n"
 
     cluster_count = sum(1 if cluster != None else 0 for cluster in cluster_list)
-    while (cluster_count is not 1 and len(K_list) is not 0):
+    while (cluster_count != 1 and len(K_list) != 0):
         max_X_no, max_Y_no = get_max_sim_pair(C)
         clusterX, clusterY = cluster_list[max_X_no-1], cluster_list[max_Y_no-1]
         clusterX.mergeCluster(clusterY)
@@ -79,9 +80,9 @@ def gaac(doc_tfidf, K_list):
             if C[i] == None:
                 continue
             else:
-                #print i, "Length of queue: ", len(C[i].queue)
                 C[i].delete(max_Y_no)
         C[max_Y_no] = None
+
         # Remove this cluster from cluster list
         cluster_list[max_Y_no-1] = None
 
@@ -124,14 +125,12 @@ def get_max_sim_pair(C):
     for clusterNo in C:
         if C[clusterNo] == None:
             continue
-        #print clusterNo, C[clusterNo].queue
         this_no, this_sim = C[clusterNo].get_max()
-        #print this_no, this_sim
         if this_sim > max_sim:
             max_sim = this_sim
             max_X_no = clusterNo
             max_Y_no = this_no
-    #print max_X_no, max_Y_no, max_sim
+    print max_X_no, max_Y_no, max_sim
     return max_X_no, max_Y_no
 
 def sim_ga(clusterX, clusterY):
