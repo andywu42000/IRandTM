@@ -59,15 +59,15 @@ def gaac(doc_tfidf, K_list):
     C = {}
     for i, clusterX in enumerate(cluster_list[:-1]):
         C[i+1] = PriorityQueue()
-        sys.stdout.write('\r')
-        sys.stdout.write("Initializing similarity... {:.2f}%".format(float(i)/N*100))
-        sys.stdout.flush()
+        #sys.stdout.write('\r')
+        #sys.stdout.write("Initializing similarity... {:.2f}%".format(float(i)/N*100))
+        #sys.stdout.flush()
         j = i + 1
-        for clusterY in cluster_list[i+1:]:
+        for clusterY in cluster_list[j:]:
             C[i+1].add(j+1, sim_ga(clusterX, clusterY))
             j += 1
     print "\n"
-    
+
     cluster_count = sum(1 if cluster != None else 0 for cluster in cluster_list)
     while (cluster_count is not 1 and len(K_list) is not 0):
         max_X_no, max_Y_no = get_max_sim_pair(C)
@@ -79,6 +79,7 @@ def gaac(doc_tfidf, K_list):
             if C[i] == None:
                 continue
             else:
+                #print i, "Length of queue: ", len(C[i].queue)
                 C[i].delete(max_Y_no)
         C[max_Y_no] = None
         # Remove this cluster from cluster list
@@ -89,8 +90,9 @@ def gaac(doc_tfidf, K_list):
             if C[i] == None:
                 continue
             else:
-                C[i].add(max_X_no, sim_ga(clusterX, cluster_list[i-1]))
+                C[i].update(max_X_no, sim_ga(clusterX, cluster_list[i-1]))
         j = max_X_no + 1
+        C[max_X_no] = PriorityQueue()
         for clusterZ in cluster_list[max_X_no:]:
             if clusterZ == None:
                 j += 1
@@ -112,7 +114,7 @@ def output_result(K, cluster_list):
     output_file = open(str(K)+".txt", "w")
     for cluster in cluster_list:
         if cluster != None:
-            for clusterNo in cluster.all_member:
+            for clusterNo in sorted(cluster.all_member):
                 output_file.write(str(clusterNo) + "\n")
             output_file.write("\n")
     output_file.close()
@@ -122,6 +124,7 @@ def get_max_sim_pair(C):
     for clusterNo in C:
         if C[clusterNo] == None:
             continue
+        #print clusterNo, C[clusterNo].queue
         this_no, this_sim = C[clusterNo].get_max()
         #print this_no, this_sim
         if this_sim > max_sim:
