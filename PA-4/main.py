@@ -130,7 +130,7 @@ def get_max_sim_pair(C):
             max_sim = this_sim
             max_X_no = clusterNo
             max_Y_no = this_no
-    print max_X_no, max_Y_no, max_sim
+    #print max_X_no, max_Y_no, max_sim
     return max_X_no, max_Y_no
 
 def sim_ga(clusterX, clusterY):

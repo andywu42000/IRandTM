@@ -1,15 +1,18 @@
 class PriorityQueue:
     def __init__(self):
         self.queue = []
+        self.no_index_map = {}
 
     def add(self, no, similarity):
         self.queue.append([no, similarity])
+        self.no_index_map[no] = len(self.queue)
         self.filter_up(len(self.queue))
 
     def filter_up(self, index):
-        parent_index = index / 2
-        current_index = index
+        parent_index, current_index = index/2, index
         while parent_index > 0 and self.queue[parent_index-1][1] < self.queue[current_index-1][1]:
+            current_no, parent_no = self.queue[current_index-1][0], self.queue[parent_index-1][0]
+            self.no_index_map[current_no], self.no_index_map[parent_no] = parent_index, current_index
             self.queue[current_index-1], self.queue[parent_index-1] = self.queue[parent_index-1], self.queue[current_index-1]
             current_index = parent_index
             parent_index = current_index / 2
@@ -22,10 +25,14 @@ class PriorityQueue:
                 right = self.queue[right_child_index-1][1]
                 max_value = max(current, left, right)
                 if max_value == left:
+                    current_no, left_no = self.queue[current_index-1][0], self.queue[left_child_index-1][0]
+                    self.no_index_map[current_no], self.no_index_map[left_no] = left_child_index, current_index
                     self.queue[current_index-1], self.queue[left_child_index-1] = self.queue[left_child_index-1], self.queue[current_index-1]
                     current_index = left_child_index
                     left_child_index, right_child_index = current_index*2, current_index*2+1
                 elif max_value == right:
+                    current_no, right_no = self.queue[current_index-1][0], self.queue[right_child_index-1][0]
+                    self.no_index_map[current_no], self.no_index_map[right_no] = right_child_index, current_index
                     self.queue[current_index-1], self.queue[right_child_index-1] = self.queue[right_child_index-1], self.queue[current_index-1]
                     current_index = right_child_index
                     left_child_index, right_child_index = current_index*2, current_index*2+1
@@ -33,6 +40,8 @@ class PriorityQueue:
                     break
             else:   # only left child
                 if left > current:
+                    current_no, left_no = self.queue[current_index-1][0], self.queue[left_child_index-1][0]
+                    self.no_index_map[current_no], self.no_index_map[left_no] = left_child_index, current_index
                     self.queue[current_index-1], self.queue[left_child_index-1] = self.queue[left_child_index-1], self.queue[current_index-1]
                     current_index = left_child_index
                     left_child_index, right_child_index = current_index*2, current_index*2+1
@@ -46,25 +55,15 @@ class PriorityQueue:
             return 0, 0
 
     def update(self, No, similarity):
-        index = 0
-        for pair in self.queue:
-            index += 1
-            if pair[0] == No:
-                break
+        index = self.no_index_map[No]
         self.queue[index-1][1] = similarity
         self.heapify(index)
 
     def delete(self, No):
-        index = 0
-        flag = False
-        for pair in self.queue:
-            index += 1
-            if pair[0] == No:
-                flag = True
-                break
-        if flag == False:
-            raise Error()
+        index = self.no_index_map[No]
+        del self.no_index_map[No]
         self.queue[index-1] = self.queue[-1]
+        self.no_index_map[self.queue[index-1][0]] = index
         self.queue.pop()
         if index <= len(self.queue):
             self.heapify(index)
