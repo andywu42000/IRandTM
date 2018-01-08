@@ -4,7 +4,7 @@ import re, os, math
 import numpy as np
 
 
-DOC_NUM = 1095
+DOC_NUM = 50  # 1095
 
 
 def generate_dictionary(term_list, doc_list):
@@ -46,21 +46,30 @@ def generate_dictionary(term_list, doc_list):
 def get_doc_as_vector(dict, docs, idf_list):
     """ Turn documents into vectors """
     doc_vectors = []
+    dict_length = len(dict)
 
     for idx, doc in enumerate(docs):
+        doc_length = len(doc)
+
         # get tf values
         tf_list = [dict[term_idx]['tf'][str(idx)] for term_idx in doc]
 
         # calculate tf-idf values
         tf_idf_list = []
-        for term_idx, tf in enumerate(tf_list):
-            tf_idf = float(tf * idf_list[doc[term_idx]])
-            tf_idf_list.append(tf_idf)
-        tf_idf_list = np.array(tf_idf_list)
+        term_idx = 0
+        for i in range(dict_length):
+            if i == doc[term_idx]:
+                tf_idf = float(tf_list[term_idx] * idf_list[doc[term_idx]])
+                tf_idf_list.append(tf_idf)
+                if term_idx <= doc_length - 2:
+                    term_idx += 1
+            else:
+                tf_idf_list.append(float(0))
 
         # normalize tf-idf value
         doc_length = math.sqrt(sum([value**2 for value in tf_idf_list]))
-        ntf_idf = np.array(tf_idf_list / doc_length)
+        ntf_idf = np.array(np.array(tf_idf_list) / doc_length)
+        # print(ntf_idf)
         doc_vectors.append(ntf_idf)
 
     return doc_vectors
@@ -115,7 +124,7 @@ def get_stop_words():
         return stop_words
 
 
-def get_docs(directory):
+def get_doc_vectors(directory):
     doc_list = []
     for filename in sorted(
             os.listdir(directory),
@@ -126,7 +135,7 @@ def get_docs(directory):
 
     stop_word_list = get_stop_words()
 
-    print("=============== get doc vectors ==============")
-    doc_vector_list = process_docs(doc_list, stop_word_list)
+    print(">>>>> get doc vectors ...")
+    doc_vector_list = process_docs(doc_list[:50], stop_word_list)
 
     return doc_vector_list
