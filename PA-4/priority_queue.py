@@ -40,7 +40,11 @@ class Heap:
                 return i * 2 + 1
 
     def delete(self, k):
-        i = [x for x, y in enumerate(self.heapList) if y[0] == k][0]
+        try:
+            i = [x for x, y in enumerate(self.heapList) if y[0] == k][0]
+        except IndexError:
+            import pdb; pdb.set_trace()
+        # print(k, [x for x, y in enumerate(self.heapList) if y[0] == k])
         self.heapList[i] = self.heapList[self.currentSize]
         self.heapList = self.heapList[:-1]
         self.currentSize -= 1

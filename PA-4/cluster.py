@@ -3,16 +3,17 @@ import numpy as np
 
 
 class Cluster:
-    def __init__(self, doc, ini_sim_list):
+    def __init__(self, doc, doc_idx, ini_sim_list):
         self.docs = [doc]
+        self.doc_indices = [doc_idx]
         self.size = 1
         self.centroid = np.array(doc)
         self.pri_queue = Heap()
         self.pri_queue.build_heap(ini_sim_list)
 
     def merge(self, new_cluster):
-        self.docs = self.docs.extend(new_cluster.docs)
-        print(self.docs)
+        self.docs.extend(new_cluster.docs)
+        self.doc_indices.extend(new_cluster.doc_indices)
 
         n1 = self.size
         n2 = new_cluster.size

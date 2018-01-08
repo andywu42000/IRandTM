@@ -4,7 +4,7 @@ import re, os, math
 import numpy as np
 
 
-DOC_NUM = 50  # 1095
+DOC_NUM = 1095
 
 
 def generate_dictionary(term_list, doc_list):
@@ -69,7 +69,6 @@ def get_doc_as_vector(dict, docs, idf_list):
         # normalize tf-idf value
         doc_length = math.sqrt(sum([value**2 for value in tf_idf_list]))
         ntf_idf = np.array(np.array(tf_idf_list) / doc_length)
-        # print(ntf_idf)
         doc_vectors.append(ntf_idf)
 
     return doc_vectors
@@ -104,6 +103,7 @@ def process_docs(content_list, stop_words):
 
     # generate dictionary and docs (by terms)
     final_terms = sorted(list(set(total_terms)))
+
     dictionary, doc_by_terms = generate_dictionary(final_terms, doc_terms_list)
 
     # get idf list
@@ -136,6 +136,6 @@ def get_doc_vectors(directory):
     stop_word_list = get_stop_words()
 
     print(">>>>> get doc vectors ...")
-    doc_vector_list = process_docs(doc_list[:50], stop_word_list)
+    doc_vector_list = process_docs(doc_list, stop_word_list)
 
     return doc_vector_list

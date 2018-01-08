@@ -5,7 +5,7 @@ from cluster import Cluster
 from doc_processor import get_doc_vectors
 
 
-DOC_NUM = 50  # 1095
+DOC_NUM = 1095
 
 
 def write_result_file(file_name, clusters):
@@ -41,13 +41,13 @@ def get_avail_index(avail_list):
     return a_list
 
 
-def HAC_clustering(cluster_num):
-    docs = get_doc_vectors('documents/')
-
+def HAC_clustering(cluster_num, docs):
     # initialize
     print(">>>>> initialize ...")
+    num = cluster_num
     avail_list = []
     cluster_list = []
+    temp_cluster_list = []
     history = []
     cluster_matrix = []
 
@@ -60,41 +60,32 @@ def HAC_clustering(cluster_num):
             if i != j:  # remove self
                 sim_list.append((j, sim_value))
 
-        c = Cluster(docs[i], sim_list)
+        c = Cluster(docs[i], i, sim_list)
         cluster_list.append(c)
         avail_list.append(1)
 
     # clustering
     print(">>>>> clustering ...")
     for k in range(DOC_NUM - 1):
-        a_list_1 = get_avail_index(avail_list)
+        a_list = get_avail_index(avail_list)
 
         # find which to merge
-        min_distance = 0
-        k_1, k_2 = -1, -1
-        for i, idx in enumerate(a_list_1):
-            distance, target = cluster_list[idx].get_most_sim()
-            if i == 0:
-                min_distance = distance
-                k_1 = idx
-                k_2 = target
-            else:
-                if distance < min_distance and target > k_2:
-                    k_1 = idx
-                    k_2 = target
+        distances = [[idx, cluster_list[idx].get_most_sim()] for idx in a_list]
+        distances = sorted(distances, key=lambda L: L[1][0])
+        k_1 = distances[0][0]
+        k_2 = distances[0][1][1]
         history.append((k_1, k_2))
+        print('history: ', (k_1, k_2))
 
         # update value
         avail_list[k_2] = 0
         cluster_k_1 = cluster_list[k_1]
-        import pdb; pdb.set_trace()
         cluster_k_1.merge(cluster_list[k_2])
         cluster_k_1.pri_queue.clear()
 
         # update similarity
-        a_list_2 = get_avail_index(avail_list)
-        for a_idx in a_list_2:
-            if a_idx != k_1:
+        for a_idx in a_list:
+            if a_idx != k_1 and a_idx != k_2:
                 cluster = cluster_list[a_idx]
                 cluster.pri_queue.delete(k_1)
                 cluster.pri_queue.delete(k_2)
@@ -105,12 +96,20 @@ def HAC_clustering(cluster_num):
         if stop(cluster_num, avail_list):
             break
 
+        if cluster_k_1.size > DOC_NUM / (num - 3):
+            avail_list[k_1] = 0
+            temp_cluster_list.append(sorted(cluster_k_1.doc_indices))
+            cluster_num -= 1
+
     # organize
     final_a_list = get_avail_index(avail_list)
     final_clusters = []
 
     for c_idx in final_a_list:
-        final_clusters.append(cluster_list[c_idx].docs)
+        final_clusters.append(sorted(cluster_list[c_idx].doc_indices))
+
+    for c in temp_cluster_list:
+        final_clusters.append(c)
 
     return history, final_clusters
 
@@ -119,7 +118,8 @@ if __name__ == '__main__':
     if not os.path.exists('result'):
         os.makedirs('result')
 
-    for num in [8]:
-        clustering_result = HAC_clustering(num)
-        import pdb; pdb.set_trace()
-        # write_result_file(str(num), clustering_result)
+    docs = get_doc_vectors('documents/')
+
+    for num in [8, 13, 20]:
+        history, clustering_result = HAC_clustering(num, docs)
+        write_result_file(str(num), clustering_result)
