@@ -1,6 +1,6 @@
 class Heap:
     def __init__(self):
-        self.heapList = [(-1, -1)]
+        self.heapList = [[-1, -1]]
         self.currentSize = 0
 
     def _move_up(self, i):
@@ -40,11 +40,7 @@ class Heap:
                 return i * 2 + 1
 
     def delete(self, k):
-        try:
-            i = [x for x, y in enumerate(self.heapList) if y[0] == k][0]
-        except IndexError:
-            import pdb; pdb.set_trace()
-        # print(k, [x for x, y in enumerate(self.heapList) if y[0] == k])
+        i = [x for x, y in enumerate(self.heapList) if y[0] == k][0]
         self.heapList[i] = self.heapList[self.currentSize]
         self.heapList = self.heapList[:-1]
         self.currentSize -= 1
@@ -53,7 +49,7 @@ class Heap:
     def build_heap(self, sim_list):
         i = len(sim_list) // 2
         self.currentSize = len(sim_list)
-        self.heapList = [(-1, -1)] + sim_list[:]
+        self.heapList = [[-1, -1]] + sim_list
         while i > 0:
             self._move_down(i)
             i = i - 1

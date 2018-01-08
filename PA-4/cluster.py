@@ -22,6 +22,6 @@ class Cluster:
         self.size += new_cluster.size
 
     def get_most_sim(self):
-        sim_value = self.pri_queue.heapList[1][1]
         sim_idx = self.pri_queue.heapList[1][0]
-        return sim_value, sim_idx
+        sim_value = self.pri_queue.heapList[1][1]
+        return [sim_idx, sim_value]
